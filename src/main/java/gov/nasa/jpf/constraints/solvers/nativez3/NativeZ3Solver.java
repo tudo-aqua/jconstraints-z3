@@ -209,4 +209,11 @@ public class NativeZ3Solver extends ConstraintSolver implements QuantifierElimin
 		}
 		return result;
 	}
+	
+	
+	@Override
+	public String getName() {
+		return "Z3";
+	}
+
 }

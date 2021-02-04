@@ -17,12 +17,13 @@ package gov.nasa.jpf.constraints.solvers.nativez3;
 
 import gov.nasa.jpf.constraints.api.ConstraintSolver;
 import gov.nasa.jpf.constraints.solvers.ConstraintSolverProvider;
+import gov.nasa.jpf.constraints.solvers.spi.Solver;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-public class NativeZ3SolverProvider implements ConstraintSolverProvider {
+public class NativeZ3SolverProvider implements ConstraintSolverProvider, Solver {
 
   @Override
   public String[] getNames() {
