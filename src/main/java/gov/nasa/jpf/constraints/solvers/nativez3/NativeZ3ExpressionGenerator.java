@@ -174,9 +174,7 @@ public class NativeZ3ExpressionGenerator extends AbstractExpressionVisitor<Expr,
 				return ctx.mkToRe(ctx.mkString(regexValue));
 			}
 			if (type.equals(BuiltinTypes.STRING)) {
-				String constValue = ((String) c.getValue());
-				constValue = constValue.replaceAll("\\\\", "\\\\x5c");
-				return ctx.mkString(constValue);
+				return convertStringConstant((Constant<String>) c);
 			}
 			if (type instanceof BVIntegerType) {
 				BVIntegerType<? super E> bvt = (BVIntegerType<? super E>) type;
@@ -207,11 +205,18 @@ public class NativeZ3ExpressionGenerator extends AbstractExpressionVisitor<Expr,
 				return ctx.mkReal(val);
 			}
 			throw new IllegalStateException("Cannot handle expression type " + type);
-		}
-		catch (Z3Exception ex) {
+		} catch (Z3Exception ex) {
 			logger.severe("Cannot handle constant " + c);
 			throw new RuntimeException(ex);
 		}
+	}
+
+	private Expr convertStringConstant(Constant<String> c) {
+		String constValue = ((String) c.getValue());
+		if (c.isEscape()) {
+			constValue = constValue.replaceAll("\\\\", "\\\\u{5c}");
+		}
+		return ctx.mkString(constValue);
 	}
 
 	/* (non-Javadoc)
@@ -1029,17 +1034,17 @@ public class NativeZ3ExpressionGenerator extends AbstractExpressionVisitor<Expr,
 					return ctx.mkFullRe(ctx.mkReSort(ctx.mkStringSort()));
 				case ALLCHAR:
 					//FIXME: Could we get Z3 ALLCHAR internal?
-					return ctx.mkRange(ctx.mkString("\\x00"), ctx.mkString("\\xff"));
+					return ctx.mkRange(ctx.mkString("\\u{00}"), ctx.mkString("\\u{ff}"));
 				case NOSTR:
 					return ctx.mkEmptyRe(ctx.mkStringSort());
 				case STRTORE:
 					if (n.getS() != null) {
-						String content = n.getS().replace("\\t", "\\x5ct");
+						String content = n.getS().replace("\\t", "\\u{5c}t");
 						SeqExpr<BitVecSort> sExpr = ctx.mkString(content);
 						return ctx.mkToRe(sExpr);
 					} else {
 						Expr se = visit(n.getLeft());
-						return ctx.mkToRe((SeqExpr) se);
+						return ctx.mkToRe(se);
 					}
 				default:
 					throw new RuntimeException();

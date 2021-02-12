@@ -42,8 +42,6 @@ public class NativeZ3Solver extends ConstraintSolver implements QuantifierElimin
 
 	private Context ctx;
 
-	private NativeZ3SolverContext defaultContext;
-
 	private final int timeout;
 
 	private final Map<String, String> options;
@@ -72,7 +70,6 @@ public class NativeZ3Solver extends ConstraintSolver implements QuantifierElimin
 
 		try {
 			this.ctx = new Context(cfg);
-			defaultContext = createContext();
 		}
 		catch (final Z3Exception ex) {
 			if (ctx != null) {
@@ -91,9 +88,6 @@ public class NativeZ3Solver extends ConstraintSolver implements QuantifierElimin
 	}
 
 	public void dispose() {
-		defaultContext.dispose();
-		defaultContext = null;
-		//ctx.dispose();
 		ctx = null;
 	}
 
@@ -107,13 +101,13 @@ public class NativeZ3Solver extends ConstraintSolver implements QuantifierElimin
 
 	@Override
 	public Result solve(final Expression<Boolean> f, final Valuation result) {
+		NativeZ3SolverContext defaultContext = createContext();
 		try {
-			defaultContext.push();
 			defaultContext.add(f);
-			return defaultContext.solve(result);
-		}
-		finally {
-			defaultContext.pop();
+			Result res = defaultContext.solve(result);
+			return res;
+		} finally {
+			defaultContext.dispose();
 		}
 	}
 
